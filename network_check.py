@@ -1,5 +1,7 @@
+import os
 import netifaces
 import socket
+import ipaddress
 
 def get_this_pc_ip():
     # Use socket library to get the IP address of this PC
@@ -10,28 +12,22 @@ def get_gateway_ip():
     gateways = netifaces.gateways()
 
     default_gateway_info = gateways.get('default', {})
-    print(default_gateway_info)
     if netifaces.AF_INET in default_gateway_info:
         return default_gateway_info[netifaces.AF_INET][0]
     return None
 
-def get_active_ips(subnet):
-    # Use netifaces to get the active IPs in the subnet
-    active_ips = []
-    for address in netifaces.interfaces():
-        addresses = netifaces.ifaddresses(address)
-        if netifaces.AF_INET in addresses:
-            for interface in addresses[netifaces.AF_INET]:
-                ip = interface['addr']
-                if ip.startswith(subnet):
-                    active_ips.append(ip)
-    return active_ips
+def get_broadcast_ip(ip_address, subnet_mask):
+    # Convert IP address and subnet mask to IPv4Address objects
+    ip_address = ipaddress.IPv4Address(ip_address)
+    subnet_mask = ipaddress.IPv4Address(subnet_mask)
 
-def get_broadcast_ip(subnet):
-    # Calculate broadcast IP from subnet
-    parts = subnet.split(".")
-    parts[-1] = "255"
-    return ".".join(parts)
+    # Calculate network address
+    network_address = ipaddress.IPv4Network(ip_address, subnet_mask)
+
+    # Calculate broadcast IP address
+    broadcast_ip = network_address.broadcast_address
+
+    return str(broadcast_ip)
 
 def get_subnet_mask():
     # Use netifaces to get the subnet mask
@@ -40,39 +36,53 @@ def get_subnet_mask():
         return addresses[netifaces.AF_INET][0]['netmask']
     return None
 
-def update_constants_file(this_pc_ip, gateway_ip, active_ips, broadcast_ip, subnet_mask):
+def update_constants_file(this_pc_ip, gateway_ip, broadcast_ip, subnet_mask):
+    # Check if constants.py exists
+    if not os.path.exists("constants.py"):
+        # If the file doesn't exist, create it and write the lines
+        with open("constants.py", "w") as file:
+            file.write(f"this_pc_ip = '{this_pc_ip}'\n")
+            file.write(f"GATEWAY_IP = '{gateway_ip}'\n")
+            file.write(f"broadcast_ip = '{broadcast_ip}'\n")
+            file.write(f"subnet_mask = '{subnet_mask}'\n")
+        return
+
     # Read the content of constants.py
     with open("constants.py", "r") as file:
         lines = file.readlines()
 
-    # Modify the content as needed
-    for i, line in enumerate(lines):
-        if line.startswith("this_pc_ip"):
-            lines[i] = f"this_pc_ip = '{this_pc_ip}'\n"
-        elif line.startswith("GATEWAY_IP"):
-            lines[i] = f"GATEWAY_IP = '{gateway_ip}'\n"
-        elif line.startswith("ACTIVE_IPS"):
-            lines[i] = f"ACTIVE_IPS = {active_ips}\n"
-        elif line.startswith("broadcast_ip"):
-            lines[i] = f"broadcast_ip = '{broadcast_ip}'\n"
-        elif line.startswith("subnet_mask"):
-            lines[i] = f"subnet_mask = '{subnet_mask}'\n"
+    # Check if lines exist in the file
+    lines_exist = {
+        "this_pc_ip": False,
+        "GATEWAY_IP": False,
+        "broadcast_ip": False,
+        "subnet_mask": False
+    }
 
-    # Write the modified content back to the file
-    with open("constants.py", "w") as file:
-        file.writelines(lines)
+    for line in lines:
+        for key in lines_exist:
+            if line.startswith(key):
+                lines_exist[key] = True
+
+    # Append missing lines to the file
+    with open("constants.py", "a") as file:
+        for key, exists in lines_exist.items():
+            if not exists:
+                if key == "GATEWAY_IP":
+                    value = gateway_ip
+                else:
+                    value = locals()[key]
+                file.write(f"{key} = '{value}'\n")
 
 def main():
     # Get values from network check functions
     this_pc_ip = get_this_pc_ip()
     gateway_ip = get_gateway_ip()
     subnet_mask = get_subnet_mask()
-    subnet = ".".join(this_pc_ip.split(".")[:3])  # Use the first three parts of this PC's IP as subnet
-    active_ips = get_active_ips(subnet)
-    broadcast_ip = get_broadcast_ip(subnet)
+    broadcast_ip = get_broadcast_ip(this_pc_ip, subnet_mask)
 
     # Update constants.py with new values
-    update_constants_file(this_pc_ip, gateway_ip, active_ips, broadcast_ip, subnet_mask)
+    update_constants_file(this_pc_ip, gateway_ip, broadcast_ip, subnet_mask)
 
 if __name__ == '__main__':
     main()

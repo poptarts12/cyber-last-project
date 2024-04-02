@@ -1,8 +1,0 @@
-
-
-
-pc_ip = ''
-GATEWAY_IP = '22222'
-broadcast_ip = ''
-subnet_mask = ''
-
