@@ -29,7 +29,7 @@ The application is designed to provide fine-grained network control through a us
 
 > *(Example UI: Settings window)*
 
-![Web Blocker Settings](relative/path/to/your/screenshot.png)
+![Web Blocker Settings](/screenshot.png)
 
 <!-- Replace the path with your uploaded image, e.g. "images/settings.png" -->
 
