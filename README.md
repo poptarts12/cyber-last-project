@@ -19,7 +19,7 @@ The application is designed to provide fine-grained network control through a us
   * Edit blocked and whitelisted sites directly from the UI.
 * **User management:**
 
-  * Change username and password from the application.
+  * Change username and password from the application(it's encrypted in SHA-1).
 * **Network-layer filtering:**
 
   * Uses ARP/DNS spoofing for effective control.
@@ -29,9 +29,8 @@ The application is designed to provide fine-grained network control through a us
 
 > *(Example UI: Settings window)*
 
-![Web Blocker Settings](/screenshot.png)
+![Web Blocker Settings](settings.png)
 
-<!-- Replace the path with your uploaded image, e.g. "images/settings.png" -->
 
 ## Getting Started
 
@@ -50,8 +49,8 @@ The application is designed to provide fine-grained network control through a us
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/poptarts12/cyber-last-project.git
-   cd cyber-last-project
+   git clone https://github.com/poptarts12/Web-Blocker.git
+   cd Web-Blocker
    ```
 
 2. **Install required Python packages:**
