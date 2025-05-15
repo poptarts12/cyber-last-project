@@ -1,1 +1,5 @@
-scapy==2.4.3
+scapy >=2.5.0
+dnslib
+flask
+lxml
+tk
